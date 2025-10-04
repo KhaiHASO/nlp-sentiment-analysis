@@ -1,22 +1,21 @@
 # DistilBERT Sentiment Analysis Demo
 
-This project demonstrates sentiment analysis using DistilBERT fine-tuned on the SST-2 dataset from Hugging Face.
+Simple Streamlit web application for sentiment analysis using DistilBERT fine-tuned on the SST-2 dataset from Hugging Face.
 
 ## Features
 
 ### Web Interface
-- **Giao diện đẹp**: Thiết kế hiện đại, thân thiện với người dùng
-- **Hỗ trợ tiếng Việt**: Giao diện hoàn toàn bằng tiếng Việt
-- **Phân tích tương tác**: Nhập văn bản và nhận kết quả ngay lập tức
-- **Ví dụ mẫu**: 10 câu mẫu có sẵn để thử nghiệm
-- **Hiển thị trực quan**: Biểu đồ độ tin cậy và emoji cảm xúc
-- **Responsive**: Tương thích với mọi thiết bị
+- **Streamlit UI**: Clean, modern interface
+- **Real-time Analysis**: Instant sentiment analysis
+- **Direct Model Loading**: Downloads model directly from Hugging Face
+- **Caching**: Model cached for faster subsequent runs
+- **Simple Input**: Just type and click analyze
 
 ### Technical Features
-- **DistilBERT Model**: Sử dụng `distilbert-base-uncased-finetuned-sst-2-english` từ Hugging Face
-- **Sentiment Analysis**: Phân loại văn bản thành tích cực/tiêu cực
-- **Confidence Score**: Hiển thị độ tin cậy của kết quả phân tích
-- **Real-time**: Phân tích nhanh chóng và chính xác
+- **DistilBERT Model**: Uses `distilbert-base-uncased-finetuned-sst-2-english` from Hugging Face
+- **Sentiment Analysis**: Classifies text as POSITIVE or NEGATIVE
+- **Confidence Score**: Shows confidence level of analysis
+- **Auto Download**: Model downloads automatically on first run
 
 ## Installation
 
@@ -30,7 +29,7 @@ conda activate sentiment-analysis
 conda install pytorch torchvision torchaudio cpuonly -c pytorch
 
 # Install other dependencies via pip
-pip install transformers datasets accelerate scikit-learn numpy pandas matplotlib seaborn
+pip install streamlit transformers "numpy<2.0"
 ```
 
 ### Using pip
@@ -38,28 +37,24 @@ pip install transformers datasets accelerate scikit-learn numpy pandas matplotli
 pip install -r requirements.txt
 ```
 
+### Fix NumPy compatibility issue (if needed)
+If you encounter NumPy version conflicts, run:
+```bash
+pip install "numpy<2.0"
+```
+
 ## Usage
 
-### Web Interface (Khuyến nghị)
+### Run Streamlit App
 ```bash
-# Với conda
+# With conda
 conda activate sentiment-analysis
-python app.py
+streamlit run app.py
 
-# Với pip
-python app.py
+# With pip
+streamlit run app.py
 ```
-Sau đó mở trình duyệt và truy cập: `http://localhost:5000`
-
-### Command Line Interface
-```bash
-# Với conda
-conda activate sentiment-analysis
-python distilbert_sentiment_demo.py
-
-# Với pip
-python distilbert_sentiment_demo.py
-```
+Then open your browser and go to: `http://localhost:8501`
 
 ## What the Demo Does
 

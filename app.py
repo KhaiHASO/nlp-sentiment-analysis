@@ -1,92 +1,109 @@
-"""
-Flask Web Application for DistilBERT Sentiment Analysis
-Giao diện web phân tích cảm xúc tiếng Việt
-"""
+# Sentiment Analysis App - DistilBERT + Streamlit
+# pip install streamlit transformers torch
 
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
 from transformers import pipeline
-import json
 
-app = Flask(__name__)
+# Load model từ Hugging Face (lần đầu chạy sẽ tự tải về)
+@st.cache_resource
+def load_model():
+    return pipeline("sentiment-analysis", 
+                    model="distilbert-base-uncased-finetuned-sst-2-english")
 
-# Load the sentiment analysis model
-print("Đang tải mô hình DistilBERT...")
-classifier = pipeline("sentiment-analysis", 
-                     model="distilbert-base-uncased-finetuned-sst-2-english")
-print("Mô hình đã được tải thành công!")
+classifier = load_model()
 
-@app.route('/')
-def index():
-    """Trang chủ"""
-    return render_template('index.html')
+# Giao diện web
+st.title("🎭 Sentiment Analysis App")
+st.write("Ứng dụng phân tích cảm xúc bằng DistilBERT (Positive / Negative)")
 
-@app.route('/analyze', methods=['POST'])
-def analyze_sentiment():
-    """API phân tích cảm xúc"""
-    try:
-        data = request.get_json()
-        text = data.get('text', '').strip()
-        
-        if not text:
-            return jsonify({
-                'success': False,
-                'error': 'Vui lòng nhập văn bản cần phân tích'
-            })
-        
-        # Phân tích cảm xúc
-        result = classifier(text)
-        
-        # Chuyển đổi kết quả sang tiếng Việt
-        label = result[0]['label']
-        score = result[0]['score']
-        
-        if label == 'LABEL_1':
-            sentiment = 'Tích cực'
-            sentiment_emoji = '😊'
-            color_class = 'positive'
-        else:
-            sentiment = 'Tiêu cực'
-            sentiment_emoji = '😔'
-            color_class = 'negative'
-        
-        # Tính phần trăm tin cậy
-        confidence_percent = round(score * 100, 1)
-        
-        return jsonify({
-            'success': True,
-            'text': text,
-            'sentiment': sentiment,
-            'sentiment_emoji': sentiment_emoji,
-            'color_class': color_class,
-            'confidence': score,
-            'confidence_percent': confidence_percent
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Lỗi khi phân tích: {str(e)}'
-        })
-
-@app.route('/examples')
-def examples():
-    """Lấy danh sách ví dụ mẫu"""
-    sample_texts = [
-        "Tôi rất thích bộ phim này!",
-        "Sản phẩm này thật tệ, tôi không hài lòng.",
-        "Thời tiết hôm nay ổn.",
-        "Tôi yêu gia đình của mình.",
-        "Đây là trải nghiệm tệ nhất từ trước đến giờ.",
-        "Dịch vụ rất tuyệt vời và chuyên nghiệp.",
-        "Tôi không chắc cảm nhận của mình về điều này.",
-        "Cuốn sách này đã thay đổi hoàn toàn cuộc đời tôi!",
-        "Đồ ăn thật kinh khủng và lạnh ngắt.",
-        "Màn trình diễn của các diễn viên thật xuất sắc!"
-    ]
+# Sample examples
+st.subheader("📝 Sample Examples")
+sample_texts = [
+    # Clear Positive Examples
+    "I absolutely love this movie!",
+    "This product is amazing and perfect!",
+    "I love spending time with my family.",
+    "The service was excellent and professional.",
+    "This book completely changed my life!",
+    "The actors' performance was outstanding!",
+    "This is fantastic and wonderful!",
+    "The sunset was beautiful tonight.",
+    "I'm so grateful for your help.",
+    "The concert was absolutely incredible!",
+    "Thank you for the wonderful gift.",
+    "This is the best day ever!",
+    "I'm so happy and excited!",
+    "This food is delicious and tasty.",
+    "The weather is perfect today.",
     
-    return jsonify({
-        'examples': sample_texts
-    })
+    # Clear Negative Examples
+    "This product is terrible and awful.",
+    "This is the worst experience ever.",
+    "The food was disgusting and cold.",
+    "I hate this software, it's buggy.",
+    "I'm disappointed with the quality.",
+    "This movie was boring and pointless.",
+    "I'm so angry and frustrated.",
+    "This is horrible and disgusting.",
+    "I hate waiting in long lines.",
+    "This traffic is terrible and annoying.",
+    "I'm sad and disappointed.",
+    "This is awful and terrible.",
+    "I hate this place completely.",
+    "This is disgusting and horrible.",
+    "I'm very upset and angry."
+]
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+# Tạo 2 cột cho sample examples
+col1, col2 = st.columns(2)
+
+# Chia rõ ràng positive và negative
+positive_examples = sample_texts[:15]  # 15 câu đầu là positive
+negative_examples = sample_texts[15:]  # 15 câu sau là negative
+
+with col1:
+    st.write("**😊 Positive Examples (Clear & Obvious):**")
+    for i, text in enumerate(positive_examples):
+        if st.button(f"😊 {text[:35]}...", key=f"pos_{i}"):
+            st.session_state.selected_text = text
+
+with col2:
+    st.write("**😔 Negative Examples (Clear & Obvious):**")
+    for i, text in enumerate(negative_examples):
+        if st.button(f"😔 {text[:35]}...", key=f"neg_{i}"):
+            st.session_state.selected_text = text
+
+st.divider()
+
+# Input text
+st.subheader("✍️ Enter Text to Analyze")
+user_input = st.text_area(
+    "Nhập câu hoặc đoạn văn bản:", 
+    value=st.session_state.get('selected_text', ''),
+    height=100
+)
+
+if st.button("🔍 Phân tích", type="primary"):
+    if user_input.strip():
+        with st.spinner("Đang phân tích..."):
+            result = classifier(user_input)[0]
+            label = result['label']
+            score = round(result['score'] * 100, 2)
+            
+            # Hiển thị kết quả với style đẹp hơn
+            if label == "POSITIVE":
+                st.success(f"✅ **Sentiment: {label}** (Confidence: {score}%)")
+                st.balloons()
+            else:
+                st.error(f"❌ **Sentiment: {label}** (Confidence: {score}%)")
+            
+            # Hiển thị thêm thông tin
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Confidence", f"{score}%")
+            with col2:
+                st.metric("Model", "DistilBERT")
+            with col3:
+                st.metric("Dataset", "SST-2")
+    else:
+        st.warning("⚠️ Vui lòng nhập văn bản để phân tích.")

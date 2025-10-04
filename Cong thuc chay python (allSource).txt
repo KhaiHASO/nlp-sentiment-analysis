@@ -1,0 +1,5 @@
+Tất cả các source python đều phải chạy trong env ảo de on dinh (xài conda)
+conda create moi truong
+conda activate moi truong
+conda install thu vien
+python app.py

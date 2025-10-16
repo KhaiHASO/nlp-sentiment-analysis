@@ -1,0 +1,13 @@
+name: sentiment-analysis
+channels:
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.9
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cpuonly
+  - pip:
+      - -r requirements.txt

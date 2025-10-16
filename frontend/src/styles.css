@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom tweaks */
+.card {
+  @apply bg-base-100 shadow p-4 rounded-xl;
+}
+
+

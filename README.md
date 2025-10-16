@@ -1,4 +1,4 @@
-# Ứng Dụng Phân Tích Cảm Xúc DistilBERT
+# NLP Sentiment Analysis - Full Stack (Backend + Frontend)
 
 Ứng dụng web Streamlit đơn giản để phân tích cảm xúc sử dụng mô hình DistilBERT được fine-tune trên bộ dữ liệu SST-2 từ Hugging Face.
 
@@ -175,21 +175,80 @@ Nếu gặp xung đột phiên bản NumPy, chạy:
 pip install "numpy<2.0"
 ```
 
-## 🎮 Cách Sử Dụng
+## 🎮 Cách Sử Dụng (Full Stack)
 
-### Chạy Ứng Dụng Streamlit (DistilBERT)
+### 1) Tạo môi trường Python (khuyến nghị Conda)
 ```bash
-streamlit run distilbert_app.py
+conda create -n sentiment-analysis python=3.9 -y
+conda activate sentiment-analysis
+
+# Cài backend dependencies
+pip install -r backend/requirements.txt
 ```
 
-### Chạy Ứng Dụng Streamlit (ViSoBERT)
+### 2) Chạy Backend API (FastAPI)
 ```bash
-streamlit run visobert_app.py
+# Terminal 1
+uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+# Docs: http://127.0.0.1:8000/docs
 ```
 
-### Chạy Ứng Dụng Streamlit (Multilingual 5-class)
+Endpoints chính:
+- GET `/health`
+- GET `/models`
+- POST `/sentiment`  (body: `{ model_type: "distilbert"|"visobert"|"multilingual", text, model_name? }`)
+- POST `/fill-mask` (body: `{ text: "...<mask>...", top_k?, model_name? }`)
+
+### 3) Chạy Frontend (React Vite)
 ```bash
-streamlit run multilingual_app.py
+# Terminal 2
+cd frontend
+npm install
+npm run dev
+# Mặc định: http://127.0.0.1:5173
+
+# (Tuỳ chọn) cấu hình API endpoint
+echo VITE_API_BASE=http://127.0.0.1:8000 > .env.local
+```
+
+### 4) Quy trình test nhanh
+1. Mở `http://127.0.0.1:5173`
+2. Chọn model ở mục Sentiment: DistilBERT / ViSoBERT / Multilingual
+3. Nhập câu và bấm Analyze để gọi `/sentiment`
+4. Sang phần Fill-Mask nhập câu có `<mask>` và bấm Suggest Tokens (gọi `/fill-mask`)
+
+<!-- Các app Streamlit đã tách khỏi backend API để tối giản. -->
+
+### 5) Gọi API trực tiếp (tuỳ chọn)
+```bash
+# Health
+curl http://127.0.0.1:8000/health
+
+# Liệt kê models
+curl http://127.0.0.1:8000/models
+
+# Sentiment
+curl -X POST http://127.0.0.1:8000/sentiment \
+  -H "Content-Type: application/json" \
+  -d '{"model_type":"visobert","text":"Sản phẩm rất tốt!"}'
+
+# Fill-mask
+curl -X POST http://127.0.0.1:8000/fill-mask \
+  -H "Content-Type: application/json" \
+  -d '{"text":"shop làm ăn như cái <mask>","top_k":10}'
+
+# Scrape & Analyze (cào link bài viết và phân tích comment)
+curl "http://127.0.0.1:8000/scrape-and-analyze?url=https://example.com/bai-viet&model_type=visobert&limit=20"
+```
+
+### Chạy Frontend (React Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+# Mặc định: http://127.0.0.1:5173 (cấu hình API qua biến môi trường Vite)
+# Tạo file .env.local (tuỳ chọn):
+# VITE_API_BASE=http://127.0.0.1:8000
 ```
 
 <!-- CLI demo for ViSoBERT đã được loại bỏ để đơn giản hoá codebase. -->

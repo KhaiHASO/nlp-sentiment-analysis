@@ -75,12 +75,11 @@ Output: [probability_negative, probability_positive]
 
 ```
 nlp-sentiment-analysis/
-├── app.py                          # Ứng dụng Streamlit chính
-├── distilbert_sentiment_demo.py    # Script demo và visualization
-├── requirements.txt                # Danh sách dependencies
-├── README.md                       # Tài liệu hướng dẫn
-├── sentiment_analysis_results.png  # Kết quả visualization
-└── task1.png                       # Mô tả task
+├── app.py           # Ứng dụng Streamlit chính
+├── distilbert.py    # Module model (load + analyze)
+├── requirements.txt # Danh sách dependencies
+├── README.md        # Tài liệu hướng dẫn
+└── task1.png        # Mô tả task
 ```
 
 ## 🔧 Logic Source Code
@@ -134,41 +133,20 @@ else:
     st.error(f"❌ **Sentiment: {label}** (Confidence: {score}%)")
 ```
 
-### 2. File `distilbert_sentiment_demo.py` - Demo Script
+### 2. Module `distilbert.py` - Model Wrapper
 
-#### 2.1 Load Model Chi Tiết
 ```python
-def load_distilbert_model():
-    model_name = "distilbert-base-uncased-finetuned-sst-2-english"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
-    return tokenizer, model
-```
-**Giải thích**:
-- `AutoTokenizer`: Tự động load tokenizer phù hợp với mô hình
-- `AutoModelForSequenceClassification`: Load mô hình cho task classification
-- Tách riêng tokenizer và model để có control tốt hơn
+DEFAULT_MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
 
-#### 2.2 Tạo Pipeline
-```python
-def create_sentiment_pipeline():
-    model_name = "distilbert-base-uncased-finetuned-sst-2-english"
-    classifier = pipeline("sentiment-analysis", model=model_name)
-    return classifier
-```
+def load_sentiment_pipeline(model_name: str = DEFAULT_MODEL_NAME):
+    return pipeline("sentiment-analysis", model=model_name)
 
-#### 2.3 Visualization
-```python
-def visualize_results(results):
-    df = pd.DataFrame(results)
-    sentiment_counts = df['sentiment'].value_counts()
-    
-    # Pie chart phân bố sentiment
-    ax1.pie(sentiment_counts.values, labels=sentiment_counts.index, 
-            autopct='%1.1f%%', colors=['lightcoral', 'lightblue'])
-    
-    # Histogram phân bố confidence
-    ax2.hist(df['confidence'], bins=10, alpha=0.7, color='skyblue')
+def analyze_text(classifier, text: str):
+    result = classifier(text)[0]
+    label = result.get("label", "").upper()
+    if label.startswith("LABEL_"):
+        label = "POSITIVE" if label.endswith("1") else "NEGATIVE"
+    return {"label": label, "score": float(result.get("score", 0.0))}
 ```
 
 ## 🚀 Cài Đặt
@@ -199,21 +177,22 @@ pip install "numpy<2.0"
 
 ## 🎮 Cách Sử Dụng
 
-### Chạy Ứng Dụng Streamlit
+### Chạy Ứng Dụng Streamlit (DistilBERT)
 ```bash
-# Với conda
-conda activate sentiment-analysis
-streamlit run app.py
-
-# Với pip
-streamlit run app.py
+streamlit run distilbert_app.py
 ```
-Sau đó mở trình duyệt và truy cập: `http://localhost:8501`
 
-### Chạy Demo Script
+### Chạy Ứng Dụng Streamlit (ViSoBERT)
 ```bash
-python distilbert_sentiment_demo.py
+streamlit run visobert_app.py
 ```
+
+### Chạy Ứng Dụng Streamlit (Multilingual 5-class)
+```bash
+streamlit run multilingual_app.py
+```
+
+<!-- CLI demo for ViSoBERT đã được loại bỏ để đơn giản hoá codebase. -->
 
 ## 📊 Demo Thực Hiện
 

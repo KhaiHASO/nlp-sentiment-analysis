@@ -2,7 +2,7 @@
 # pip install streamlit transformers torch
 
 import streamlit as st
-from transformers import pipeline
+from distilbert import load_sentiment_pipeline, analyze_text, DEFAULT_MODEL_NAME
 
 # Page config (phải đặt ở đầu)
 st.set_page_config(
@@ -14,11 +14,8 @@ st.set_page_config(
 
 # Load model từ Hugging Face (lần đầu chạy sẽ tự tải về)
 @st.cache_resource
-def load_model():
-    return pipeline("sentiment-analysis", 
-                    model="distilbert-base-uncased-finetuned-sst-2-english")
-
-classifier = load_model()
+def load_model(model_name: str = DEFAULT_MODEL_NAME):
+    return load_sentiment_pipeline(model_name)
 
 # Sidebar
 with st.sidebar:
@@ -41,6 +38,19 @@ with st.sidebar:
     """)
     
     st.markdown("---")
+    st.markdown("### 🧠 Chọn mô hình")
+    model_name = st.selectbox(
+        "Hugging Face model",
+        options=[
+            DEFAULT_MODEL_NAME,
+            "distilbert-base-uncased",
+            "bert-base-uncased",
+            "nlptown/bert-base-multilingual-uncased-sentiment",
+        ],
+        index=0,
+        help="Chọn model để thử nghiệm. Một số model có thể cần mapping label khác",
+    )
+    classifier = load_model(model_name)
     st.markdown("### 📊 Thống kê")
     st.metric("Sample Examples", "30")
     st.metric("Model Size", "~66M params")
@@ -197,7 +207,7 @@ with st.container():
 if analyze_clicked:
     if user_input.strip():
         with st.spinner("🤖 Đang phân tích cảm xúc..."):
-            result = classifier(user_input)[0]
+            result = analyze_text(classifier, user_input)
             label = result['label']
             score = round(result['score'] * 100, 2)
             
